@@ -1,23 +1,26 @@
 package io.iqark.tcauth.service.impl;
 
 import io.iqark.tcauth.entity.Account;
+import io.iqark.tcauth.entity.AccountAccess;
 import io.iqark.tcauth.pojo.AccountCreateRq;
 import io.iqark.tcauth.pojo.AccountVerifyRq;
 import io.iqark.tcauth.pojo.CustomResponse;
+import io.iqark.tcauth.service.AccessService;
 import io.iqark.tcauth.service.AuthService;
-
 import io.smallrye.jwt.build.Jwt;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
-
-import java.util.Arrays;
-import java.util.HashSet;
 
 import static io.iqark.tcauth.utils.Utils.*;
 
 @ApplicationScoped
 public class AuthServiceImpl implements AuthService {
+
+    @Inject
+    AccessService accessService;
+
     @Override
     public Response getAccount(String userName) {
         Account account = Account.findByUsername(userName.toUpperCase());
@@ -28,6 +31,23 @@ public class AuthServiceImpl implements AuthService {
         }
         return Response.status(Response.Status.OK)
                 .entity(account)
+                .build();
+    }
+
+    @Override
+    public Response getAccountAccess(String userName, String authorization) {
+        if (!accessService.isLegalUser(authorization)) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .build();
+        }
+        Account account = Account.findByUsername(userName.toUpperCase());
+        if (account == null) {
+            return Response.status(Response.Status.OK)
+                    .entity(new CustomResponse("getAccount", String.format("Account %s does not exist", userName)))
+                    .build();
+        }
+        return Response.status(Response.Status.OK)
+                .entity(account.accountAccess)
                 .build();
     }
 

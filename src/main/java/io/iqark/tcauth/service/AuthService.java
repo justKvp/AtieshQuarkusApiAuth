@@ -7,6 +7,7 @@ import jakarta.ws.rs.core.Response;
 
 public interface AuthService {
     Response getAccount(String userName);
+    Response getAccountAccess(String userName, String authorization);
     Response verifyAccount(AccountVerifyRq accountCreateRq);
     Response createAccount(AccountCreateRq accountCreateRq);
     Response generateToken();

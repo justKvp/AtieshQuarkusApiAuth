@@ -36,6 +36,15 @@ public class Account extends PanacheEntityBase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", columnDefinition = "int(10) unsigned", length = 32)
     private Integer id;
+
+    @OneToOne(
+            mappedBy = "account",
+            fetch = FetchType.EAGER,
+            cascade = {CascadeType.DETACH}
+    )
+    @JsonIgnore
+    public AccountAccess accountAccess;
+
     @Column(name = "username", columnDefinition = "varchar(32)", length = 32)
     private String username;
     @JsonIgnore

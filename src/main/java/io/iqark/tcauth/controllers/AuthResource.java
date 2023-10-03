@@ -10,6 +10,10 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeIn;
+import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
 @Path("/auth")
 public class AuthResource {
@@ -21,6 +25,16 @@ public class AuthResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAccount(@PathParam(value = "userName") String userName) {
         return authService.getAccount(userName);
+    }
+
+    @GET
+    @Path("/getAccountAccess/{userName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @SecurityRequirement(name = "Basic Authentication")
+    @SecurityScheme(securitySchemeName = "Basic Authentication", scheme = "basic", type = SecuritySchemeType.HTTP, description = "Enter login and password", in = SecuritySchemeIn.HEADER)
+    public Response getAccountAccess(@PathParam(value = "userName") String userName,
+                                     @HeaderParam("Authorization") String authorization) {
+        return authService.getAccountAccess(userName, authorization);
     }
 
     @POST
