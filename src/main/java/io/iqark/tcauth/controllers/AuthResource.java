@@ -4,6 +4,7 @@ import io.iqark.tcauth.pojo.AccountCreateRq;
 import io.iqark.tcauth.pojo.AccountVerifyRq;
 import io.iqark.tcauth.service.AuthService;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -32,9 +33,17 @@ public class AuthResource {
 
     @POST
     @Path("/createAccount")
+    @RolesAllowed("user")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createAccount(@Valid AccountCreateRq accountCreateRq) {
         return authService.createAccount(accountCreateRq);
+    }
+
+    @GET
+    @Path("/token")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response generateToken() {
+        return authService.generateToken();
     }
 }

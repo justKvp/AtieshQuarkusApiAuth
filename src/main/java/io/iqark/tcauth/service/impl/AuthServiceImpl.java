@@ -6,9 +6,13 @@ import io.iqark.tcauth.pojo.AccountVerifyRq;
 import io.iqark.tcauth.pojo.CustomResponse;
 import io.iqark.tcauth.service.AuthService;
 
+import io.smallrye.jwt.build.Jwt;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
+
+import java.util.Arrays;
+import java.util.HashSet;
 
 import static io.iqark.tcauth.utils.Utils.*;
 
@@ -59,6 +63,19 @@ public class AuthServiceImpl implements AuthService {
         addAccount(accountCreateRq);
         return Response.status(Response.Status.OK)
                 .entity(new CustomResponse())
+                .build();
+    }
+
+    @Override
+    public Response generateToken() {
+        String token =
+                Jwt.issuer("jwt-token")
+                        .subject("account")
+                        .groups("user")
+                        .expiresAt(System.currentTimeMillis() + 3600)
+                        .sign();
+        return Response.status(Response.Status.OK)
+                .entity(token)
                 .build();
     }
 

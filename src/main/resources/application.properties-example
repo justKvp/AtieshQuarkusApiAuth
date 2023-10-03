@@ -4,3 +4,7 @@ quarkus.datasource.password=root
 
 quarkus.datasource.jdbc.url=jdbc:mariadb://localhost:3306/auth
 quarkus.datasource.jdbc.max-size=16
+
+smallrye.jwt.sign.key.location=privateKey.pem
+mp.jwt.verify.issuer=jwt-token
+mp.jwt.verify.publickey.location=publicKey.pem

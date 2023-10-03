@@ -9,4 +9,5 @@ public interface AuthService {
     Response getAccount(String userName);
     Response verifyAccount(AccountVerifyRq accountCreateRq);
     Response createAccount(AccountCreateRq accountCreateRq);
+    Response generateToken();
 }
