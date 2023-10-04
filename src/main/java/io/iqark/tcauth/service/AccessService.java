@@ -17,9 +17,6 @@ public class AccessService {
     }
 
     public boolean isLegalUser(String base64LoginPass) {
-        for (AccountAccess it : accountAccesses) {
-            System.out.println(it.account.getUsername());
-        }
         if (base64LoginPass == null) {
             return false;
         }

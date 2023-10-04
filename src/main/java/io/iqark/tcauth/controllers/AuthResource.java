@@ -21,6 +21,7 @@ public class AuthResource {
     AuthService authService;
 
     @GET
+    @RolesAllowed("user")
     @Path("/getAccount/{userName}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAccount(@PathParam(value = "userName") String userName) {
@@ -28,16 +29,18 @@ public class AuthResource {
     }
 
     @GET
+    @RolesAllowed("user")
     @Path("/getAccountAccess/{userName}")
     @Produces(MediaType.APPLICATION_JSON)
     @SecurityRequirement(name = "Basic Authentication")
     @SecurityScheme(securitySchemeName = "Basic Authentication", scheme = "basic", type = SecuritySchemeType.HTTP, description = "Enter login and password", in = SecuritySchemeIn.HEADER)
     public Response getAccountAccess(@PathParam(value = "userName") String userName,
-                                     @HeaderParam("Authorization") String authorization) {
+                                     @HeaderParam("AuthToken") String authorization) {
         return authService.getAccountAccess(userName, authorization);
     }
 
     @POST
+    @RolesAllowed("user")
     @Path("/verifyAccount")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -46,8 +49,8 @@ public class AuthResource {
     }
 
     @POST
-    @Path("/createAccount")
     @RolesAllowed("user")
+    @Path("/createAccount")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createAccount(@Valid AccountCreateRq accountCreateRq) {
@@ -56,13 +59,14 @@ public class AuthResource {
 
     @GET
     @Path("/token")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response generateToken() {
         return authService.generateToken();
     }
 
     @GET
     @Path("/realmlist")
+    @RolesAllowed("user")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRealmlists() {
         return authService.getRealmlists();

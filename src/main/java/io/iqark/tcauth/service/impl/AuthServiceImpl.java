@@ -107,7 +107,7 @@ public class AuthServiceImpl implements AuthService {
                         .expiresAt(System.currentTimeMillis() + 3600)
                         .sign();
         return Response.status(Response.Status.OK)
-                .entity(token)
+                .entity(new CustomResponse(token))
                 .build();
     }
 
