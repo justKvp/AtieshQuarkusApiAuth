@@ -12,7 +12,7 @@ public class AccountAccess extends PanacheEntityBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "AccountID", columnDefinition = "int(10) unsigned", length = 32)
-    private Integer id;
+    private Integer accountID;
 
     @OneToOne(
             cascade = {CascadeType.DETACH}
@@ -32,12 +32,20 @@ public class AccountAccess extends PanacheEntityBase {
     @Column(name = "Comment", columnDefinition = "varchar(255)", length = 255)
     private String comment;
 
-    public Integer getId() {
-        return id;
+    public Integer getAccountID() {
+        return accountID;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setAccountID(Integer accountID) {
+        this.accountID = accountID;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
     }
 
     public Integer getSecurityLevel() {

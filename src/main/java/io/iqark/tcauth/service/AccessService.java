@@ -4,7 +4,6 @@ import io.iqark.tcauth.entity.AccountAccess;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
-import java.util.Optional;
 
 import static io.iqark.tcauth.utils.Base64Utils.base64Decode;
 import static io.iqark.tcauth.utils.Utils.verifySRP6;
@@ -18,6 +17,9 @@ public class AccessService {
     }
 
     public boolean isLegalUser(String base64LoginPass) {
+        for (AccountAccess it : accountAccesses) {
+            System.out.println(it.account.getUsername());
+        }
         if (base64LoginPass == null) {
             return false;
         }
@@ -42,7 +44,7 @@ public class AccessService {
 
     public boolean isContainAccountID(Integer id) {
         return accountAccesses.stream()
-                .filter(accountAccess -> accountAccess.getId().equals(id))
+                .filter(accountAccess -> accountAccess.getAccountID().equals(id))
                 .findAny()
                 .isPresent();
     }

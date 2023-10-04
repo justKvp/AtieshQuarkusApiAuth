@@ -2,6 +2,8 @@ package io.iqark.tcauth.service.impl;
 
 import io.iqark.tcauth.entity.Account;
 import io.iqark.tcauth.entity.AccountAccess;
+import io.iqark.tcauth.entity.RealmCharacter;
+import io.iqark.tcauth.entity.Realmlist;
 import io.iqark.tcauth.pojo.AccountCreateRq;
 import io.iqark.tcauth.pojo.AccountVerifyRq;
 import io.iqark.tcauth.pojo.CustomResponse;
@@ -12,6 +14,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
+
+import java.util.List;
 
 import static io.iqark.tcauth.utils.Utils.*;
 
@@ -125,5 +129,14 @@ public class AuthServiceImpl implements AuthService {
         account.setOs("");
         account.setRecruiter(0);
         account.persist();
+
+        List<Realmlist> realmlists = Realmlist.listAll();
+        for (Realmlist it : realmlists) {
+            RealmCharacter realmCharacter = new RealmCharacter();
+            realmCharacter.setRealmid(it.getId());
+            realmCharacter.setNumchars(0);
+            realmCharacter.account = account;
+            realmCharacter.persist();
+        }
     }
 }

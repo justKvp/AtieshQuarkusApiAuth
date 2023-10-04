@@ -6,6 +6,8 @@ import io.quarkus.hibernate.orm.panache.PanacheQuery;
 
 import jakarta.persistence.*;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Example JPA entity defined as a Panache Entity.
@@ -40,10 +42,16 @@ public class Account extends PanacheEntityBase {
     @OneToOne(
             mappedBy = "account",
             fetch = FetchType.EAGER,
-            cascade = {CascadeType.DETACH}
+            cascade = {CascadeType.ALL}
     )
-    @JsonIgnore
     public AccountAccess accountAccess;
+
+    @OneToMany(
+            mappedBy = "account",
+            fetch = FetchType.EAGER,
+            cascade = {CascadeType.ALL}
+    )
+    public List<RealmCharacter> realmCharacters = new ArrayList<>();
 
     @Column(name = "username", columnDefinition = "varchar(32)", length = 32)
     private String username;
