@@ -10,5 +10,6 @@ public interface AuthService {
     Response getAccountAccess(String userName, String authorization);
     Response verifyAccount(AccountVerifyRq accountCreateRq);
     Response createAccount(AccountCreateRq accountCreateRq);
+    Response getRealmlists();
     Response generateToken();
 }

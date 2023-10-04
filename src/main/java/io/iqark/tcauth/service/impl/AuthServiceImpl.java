@@ -91,6 +91,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public Response getRealmlists() {
+        List<Realmlist> realms = Realmlist.listAll();
+        return Response.status(Response.Status.OK)
+                .entity(realms)
+                .build();
+    }
+
+    @Override
     public Response generateToken() {
         String token =
                 Jwt.issuer("jwt-token")

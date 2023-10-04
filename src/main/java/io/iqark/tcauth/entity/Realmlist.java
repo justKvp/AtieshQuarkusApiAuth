@@ -141,4 +141,22 @@ public class Realmlist extends PanacheEntityBase {
     public void setGamebuild(Integer gamebuild) {
         this.gamebuild = gamebuild;
     }
+
+    @Override
+    public String toString() {
+        return "Realmlist{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
+                ", localAddress='" + localAddress + '\'' +
+                ", localSubnetMask='" + localSubnetMask + '\'' +
+                ", port=" + port +
+                ", icon=" + icon +
+                ", flag=" + flag +
+                ", timezone=" + timezone +
+                ", allowedSecurityLevel=" + allowedSecurityLevel +
+                ", population=" + population +
+                ", gamebuild=" + gamebuild +
+                '}';
+    }
 }

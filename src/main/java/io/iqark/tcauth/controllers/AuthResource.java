@@ -60,4 +60,11 @@ public class AuthResource {
     public Response generateToken() {
         return authService.generateToken();
     }
+
+    @GET
+    @Path("/realmlist")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRealmlists() {
+        return authService.getRealmlists();
+    }
 }
