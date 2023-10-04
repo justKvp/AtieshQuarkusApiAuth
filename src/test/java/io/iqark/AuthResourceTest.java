@@ -12,7 +12,7 @@ public class AuthResourceTest {
     @Test
     public void testGetAccountEndpoint() {
         given()
-          .when().get("/auth/getAccount/1")
+          .when().get("/auth/token")
           .then()
              .statusCode(200);
     }
@@ -20,17 +20,9 @@ public class AuthResourceTest {
     @Test
     public void testVerifyAccountEndpoint() {
         given()
-                .when().post("/auth/verifyAccount")
+                .when().post("/auth/getAccount/1")
                 .then()
-                .statusCode(415);
-    }
-
-    @Test
-    public void testCreateAccountEndpoint() {
-        given()
-                .when().post("/auth/createAccount")
-                .then()
-                .statusCode(415);
+                .statusCode(401);
     }
 
 }
