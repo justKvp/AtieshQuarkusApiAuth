@@ -3,7 +3,7 @@ package io.iqark.tcauth.service;
 import io.iqark.tcauth.entity.AccountAccess;
 import jakarta.enterprise.context.ApplicationScoped;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
@@ -18,7 +18,7 @@ public class AccessService {
         accountAccesses = AccountAccess.listAll();
     }
 
-    public boolean isLegalUser(String base64LoginPass) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+    public boolean isLegalUser(String base64LoginPass) throws NoSuchAlgorithmException, IOException {
         if (base64LoginPass == null) {
             return false;
         }

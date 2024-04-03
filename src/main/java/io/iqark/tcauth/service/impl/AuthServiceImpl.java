@@ -15,7 +15,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
             if (!accessService.isLegalUser(authorization)) {
                 return RUtil.authorizedFailed(1, "Wrong authorization");
             }
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+        } catch (NoSuchAlgorithmException | IOException e) {
             return RUtil.expectationFailed(2, String.format("getAccountAccess failed : %s", e.getMessage()));
         }
         Account account = Account.findByUsername(userName.toUpperCase());
@@ -64,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
                     accountVerifyRq.getAccount_password(),
                     account.getSalt(),
                     account.getVerifier()) ? RUtil.success(new CustomResponse()) : RUtil.preconditionFailed(1, "Login or Password incorrect");
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+        } catch (NoSuchAlgorithmException | IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -77,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
         }
         try {
             addAccount(accountCreateRq);
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+        } catch (NoSuchAlgorithmException | IOException e) {
             return RUtil.expectationFailed(2, String.format("createAccount failed : %s", e.getMessage()));
         }
         return RUtil.success(new CustomResponse());
@@ -101,7 +101,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Transactional(value = Transactional.TxType.REQUIRES_NEW, rollbackOn = Exception.class)
-    protected void addAccount(AccountCreateRq accountCreateRq) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    protected void addAccount(AccountCreateRq accountCreateRq) throws IOException, NoSuchAlgorithmException {
         byte[] salt = generateRandomSalt();
         byte[] verifier = calculateSRP6Verifier(accountCreateRq.getAccount_name(),
                 accountCreateRq.getAccount_password(),
@@ -119,7 +119,8 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private static Account getAccount(AccountCreateRq accountCreateRq, byte[] salt, byte[] verifier) {
+    @Transactional(value = Transactional.TxType.MANDATORY, rollbackOn = Exception.class)
+    protected static Account getAccount(AccountCreateRq accountCreateRq, byte[] salt, byte[] verifier) {
         Account account = new Account();
         account.setUsername(accountCreateRq.getAccount_name().toUpperCase());
         account.setSalt(salt);
