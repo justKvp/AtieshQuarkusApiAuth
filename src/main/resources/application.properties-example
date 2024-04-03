@@ -1,8 +1,8 @@
 quarkus.datasource.db-kind=mariadb
-quarkus.datasource.username=root
-quarkus.datasource.password=root
+quarkus.datasource.username="at_admin"
+quarkus.datasource.password="yecnUiCqpePJgNOewNtGhdSKXv8QcXBJHGgnr6eZjWMPf4TJ"
 
-quarkus.datasource.jdbc.url=jdbc:mariadb://localhost:3306/auth
+quarkus.datasource.jdbc.url=jdbc:mariadb://5.42.217.20:58996/auth
 quarkus.datasource.jdbc.max-size=16
 
 smallrye.jwt.sign.key.location=privateKey.pem

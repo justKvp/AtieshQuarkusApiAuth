@@ -1,7 +1,6 @@
 package io.iqark.tcauth.service.impl;
 
 import io.iqark.tcauth.entity.Account;
-import io.iqark.tcauth.entity.AccountAccess;
 import io.iqark.tcauth.entity.RealmCharacter;
 import io.iqark.tcauth.entity.Realmlist;
 import io.iqark.tcauth.pojo.AccountCreateRq;
@@ -9,15 +8,18 @@ import io.iqark.tcauth.pojo.AccountVerifyRq;
 import io.iqark.tcauth.pojo.CustomResponse;
 import io.iqark.tcauth.service.AccessService;
 import io.iqark.tcauth.service.AuthService;
+import io.iqark.tcauth.utils.RUtil;
 import io.smallrye.jwt.build.Jwt;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import static io.iqark.tcauth.utils.Utils.*;
+import static io.iqark.tcauth.utils.SRP6.*;
 
 @ApplicationScoped
 public class AuthServiceImpl implements AuthService {
@@ -29,73 +31,62 @@ public class AuthServiceImpl implements AuthService {
     public Response getAccount(String userName) {
         Account account = Account.findByUsername(userName.toUpperCase());
         if (account == null) {
-            return Response.status(Response.Status.OK)
-                    .entity(new CustomResponse("getAccount", String.format("Account %s does not exist", userName)))
-                    .build();
+            return RUtil.preconditionFailed(1, String.format("Account %s does not exist", userName));
         }
-        return Response.status(Response.Status.OK)
-                .entity(account)
-                .build();
+        return RUtil.success(account);
     }
 
     @Override
     public Response getAccountAccess(String userName, String authorization) {
-        if (!accessService.isLegalUser(authorization)) {
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .build();
+        try {
+            if (!accessService.isLegalUser(authorization)) {
+                return RUtil.authorizedFailed(1, "Wrong authorization");
+            }
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            return RUtil.expectationFailed(2, String.format("getAccountAccess failed : %s", e.getMessage()));
         }
         Account account = Account.findByUsername(userName.toUpperCase());
         if (account == null) {
-            return Response.status(Response.Status.OK)
-                    .entity(new CustomResponse("getAccount", String.format("Account %s does not exist", userName)))
-                    .build();
+            return RUtil.preconditionFailed(1, String.format("Account %s does not exist", userName));
         }
-        return Response.status(Response.Status.OK)
-                .entity(account.accountAccess)
-                .build();
+        return RUtil.success(account.accountAccess);
     }
 
     @Override
     public Response verifyAccount(AccountVerifyRq accountVerifyRq) {
         Account account = Account.findByUsername(accountVerifyRq.getAccount_name().toUpperCase());
         if (account == null) {
-            return Response.status(Response.Status.OK)
-                    .entity(new CustomResponse("verifyAccount", String.format("Account %s does not exist", accountVerifyRq.getAccount_name())))
-                    .build();
+            return RUtil.preconditionFailed(1, String.format("Account %s does not exist", accountVerifyRq.getAccount_name()));
         }
 
-        if (!verifySRP6(accountVerifyRq.getAccount_name(), accountVerifyRq.getAccount_password(), account.getSalt(), account.getVerifier())) {
-            return Response.status(Response.Status.OK)
-                    .entity(new CustomResponse("verifyAccount", "Login or Password incorrect"))
-                    .build();
+        try {
+            return verifySRP6(accountVerifyRq.getAccount_name(),
+                    accountVerifyRq.getAccount_password(),
+                    account.getSalt(),
+                    account.getVerifier()) ? RUtil.success(new CustomResponse()) : RUtil.preconditionFailed(1, "Login or Password incorrect");
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
-
-        return Response.status(Response.Status.OK)
-                .entity(new CustomResponse())
-                .build();
     }
 
     @Override
     public Response createAccount(AccountCreateRq accountCreateRq) {
         Account account = Account.findByUsername(accountCreateRq.getAccount_name().toUpperCase());
         if (account != null) {
-            return Response.status(Response.Status.OK)
-                    .entity(new CustomResponse("createAccount", String.format("Account %s already exist", accountCreateRq.getAccount_name())))
-                    .build();
+            return RUtil.preconditionFailed(1, String.format("Account %s already exist", accountCreateRq.getAccount_name()));
         }
-
-        addAccount(accountCreateRq);
-        return Response.status(Response.Status.OK)
-                .entity(new CustomResponse())
-                .build();
+        try {
+            addAccount(accountCreateRq);
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            return RUtil.expectationFailed(2, String.format("createAccount failed : %s", e.getMessage()));
+        }
+        return RUtil.success(new CustomResponse());
     }
 
     @Override
     public Response getRealmlists() {
         List<Realmlist> realms = Realmlist.listAll();
-        return Response.status(Response.Status.OK)
-                .entity(realms)
-                .build();
+        return RUtil.success(realms);
     }
 
     @Override
@@ -106,17 +97,29 @@ public class AuthServiceImpl implements AuthService {
                         .groups("user")
                         .expiresAt(System.currentTimeMillis() + 3600)
                         .sign();
-        return Response.status(Response.Status.OK)
-                .entity(new CustomResponse(token))
-                .build();
+        return RUtil.success(new CustomResponse(token));
     }
 
     @Transactional(value = Transactional.TxType.REQUIRES_NEW, rollbackOn = Exception.class)
-    protected void addAccount(AccountCreateRq accountCreateRq) {
-        // Reg
-        byte[] salt = generateRandomSalt(32);
-        byte[] verifier = calculateSRP6TCVerifier(accountCreateRq.getAccount_name(), accountCreateRq.getAccount_password(), salt);
+    protected void addAccount(AccountCreateRq accountCreateRq) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        byte[] salt = generateRandomSalt();
+        byte[] verifier = calculateSRP6Verifier(accountCreateRq.getAccount_name(),
+                accountCreateRq.getAccount_password(),
+                salt);
 
+        Account account = getAccount(accountCreateRq, salt, verifier);
+
+        List<Realmlist> realmlists = Realmlist.listAll();
+        for (Realmlist it : realmlists) {
+            RealmCharacter realmCharacter = new RealmCharacter();
+            realmCharacter.setRealmid(it.getId());
+            realmCharacter.setNumchars(0);
+            realmCharacter.account = account;
+            realmCharacter.persist();
+        }
+    }
+
+    private static Account getAccount(AccountCreateRq accountCreateRq, byte[] salt, byte[] verifier) {
         Account account = new Account();
         account.setUsername(accountCreateRq.getAccount_name().toUpperCase());
         account.setSalt(salt);
@@ -137,14 +140,6 @@ public class AuthServiceImpl implements AuthService {
         account.setOs("");
         account.setRecruiter(0);
         account.persist();
-
-        List<Realmlist> realmlists = Realmlist.listAll();
-        for (Realmlist it : realmlists) {
-            RealmCharacter realmCharacter = new RealmCharacter();
-            realmCharacter.setRealmid(it.getId());
-            realmCharacter.setNumchars(0);
-            realmCharacter.account = account;
-            realmCharacter.persist();
-        }
+        return account;
     }
 }

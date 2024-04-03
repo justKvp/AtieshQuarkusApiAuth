@@ -3,10 +3,12 @@ package io.iqark.tcauth.service;
 import io.iqark.tcauth.entity.AccountAccess;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import static io.iqark.tcauth.utils.Base64Utils.base64Decode;
-import static io.iqark.tcauth.utils.Utils.verifySRP6;
+import static io.iqark.tcauth.utils.SRP6.verifySRP6;
 
 @ApplicationScoped
 public class AccessService {
@@ -16,7 +18,7 @@ public class AccessService {
         accountAccesses = AccountAccess.listAll();
     }
 
-    public boolean isLegalUser(String base64LoginPass) {
+    public boolean isLegalUser(String base64LoginPass) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         if (base64LoginPass == null) {
             return false;
         }
@@ -30,27 +32,20 @@ public class AccessService {
             return false;
         }
         String password = part[1];
-        if (!verifySRP6(accountAccess.account.getUsername(),
+        return verifySRP6(accountAccess.account.getUsername(),
                 password,
                 accountAccess.account.getSalt(),
-                accountAccess.account.getVerifier())) {
-            return false;
-        }
-        return true;
+                accountAccess.account.getVerifier());
     }
 
     public boolean isContainAccountID(Integer id) {
         return accountAccesses.stream()
-                .filter(accountAccess -> accountAccess.getAccountID().equals(id))
-                .findAny()
-                .isPresent();
+                .anyMatch(accountAccess -> accountAccess.getAccountID().equals(id));
     }
 
     public boolean isContainAccountName(String name) {
         return accountAccesses.stream()
-                .filter(accountAccess -> accountAccess.account.getUsername().equals(name.toUpperCase()))
-                .findAny()
-                .isPresent();
+                .anyMatch(accountAccess -> accountAccess.account.getUsername().equals(name.toUpperCase()));
     }
 
     public AccountAccess getAccountByAccess(String name) {
