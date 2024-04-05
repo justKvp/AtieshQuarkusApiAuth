@@ -4,6 +4,7 @@ import io.iqark.tcauth.pojo.AccountCreateRq;
 import io.iqark.tcauth.pojo.AccountVerifyRq;
 import io.iqark.tcauth.service.AuthService;
 
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -40,7 +41,7 @@ public class AuthResource {
     }
 
     @POST
-    @RolesAllowed("user")
+    @PermitAll
     @Path("/verifyAccount")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
